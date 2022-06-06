@@ -5,7 +5,7 @@
   "main": "src/main.ts",
   "scripts": {
     "build": "tstl && npm run autopublish",
-    "watch": "tstl --watch && npm run autopublish",
+    "watch": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"npm run autopublish\" --compiler ./node_modules/typescript-to-lua/dist/tstl.js",
     "autopublish": "/bin/bash ./publish.sh --auto",
     "publish": "/bin/bash ./publish.sh"
   },
@@ -13,6 +13,7 @@
   "license": "MIT",
   "devDependencies": {
     "lua-types": "^2.11.0",
+    "tsc-watch": "^5.0.3",
     "typescript-to-lua": "^1.5.0"
   }
 }

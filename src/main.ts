@@ -1,7 +1,15 @@
-function main(...argv: Array<string>): void {
-    for(let arg of argv) {
-        print(arg);
-    }
+import {ArgumentList, parseArgs} from './argument-parser'
+import {argumentDefinition} from "./argument-definitions";
+
+function main(args: ArgumentList): void {
+
 }
 
-main(...$vararg)
+((...args) => {
+    const parsedArgs = parseArgs(argumentDefinition, ...args)
+    if (parsedArgs === false) {
+        return;
+    }
+    main(parsedArgs)
+})(...$vararg)
+
