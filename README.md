@@ -14,8 +14,12 @@ Now clone this repository and install its dependencies by running
 
 ```npm i```
 
-It is recommedned to install the `typescript-to-lua`package globally to allow usage of the `tstl`command, 
+It is recommedned to install the `typescript-to-lua` package globally to allow usage of the `tstl` command, 
 but it is not strictly necessary for this project.
+
+To install `tstl` globally, run 
+
+```npm i -g typescript-to-lua``` 
 
 ## Auto-Publishing Build Assets (Dist Files)
 
@@ -38,4 +42,4 @@ You can also re-publish already built dist files by running
 
 ```npm run publish```
 
-as long as the `PUBLISH_PATH`environment variable is set to a valid location.
+as long as the `PUBLISH_PATH` environment variable is set to a valid location.
