@@ -12,4 +12,3 @@ function main(args: ArgumentList): void {
     }
     main(parsedArgs)
 })(...$vararg)
-

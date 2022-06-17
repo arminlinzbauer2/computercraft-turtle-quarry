@@ -2,15 +2,15 @@ export function parseArgs(definition: ArgumentDefinition, ...argv: Array<string>
     const argList = {flags: {}, args: {}, positional: {}};
 
     definition.flags.push({
-        name: 'help',
-        alias: '?',
-        description: 'Print usage'
+        name: "help",
+        alias: "?",
+        description: "Print usage"
     });
 
     definition.flags.push({
-        name: 'version',
-        alias: 'V',
-        description: 'Print version'
+        name: "version",
+        alias: "V",
+        description: "Print version"
     });
 
     for (let arg of argv) {
@@ -29,12 +29,51 @@ export function parseArgs(definition: ArgumentDefinition, ...argv: Array<string>
 }
 
 function getName(definition: ArgumentDefinition): string {
-    const name = `${definition.name}${definition.version ? ` v${definition.version}` : undefined}`;
-    return name;
+    let version = definition.version ? ` v${definition.version}` : "";
+    return `${definition.name}${version}`;
 }
 
 function getOptionName(arg: Argument, expectsValue: boolean = false): string {
-    return `--${arg.name}${arg.alias ? `|-${arg.alias}` : undefined}${expectsValue ? `=${arg.required ? '<>' : '[]'}` : ''}`;
+    let expectedValueMarker = expectsValue ? `=${arg.required ? "<>" : "[]"}` : "";
+    let alias = arg.alias ? `|-${arg.alias}` : "";
+
+    return `--${arg.name}${alias}${expectedValueMarker}`;
+}
+
+function wrapWithBrackets(text: string, required: boolean = false) {
+    return required ?
+        `<${text}>` :
+        `[${text}]`;
+}
+
+function printGroup(args: Argument[], title: string, padLength: number): void {
+    if (args.length > 0) {
+        print("Flags:");
+        for (let arg of args) {
+            let paddedName = getOptionName(arg).padStart(padLength);
+            let description = arg.description ? ` - ${arg.description}` : "";
+            print(`${paddedName}${description}`);
+        }
+    }
+}
+
+function getMaxArgNameLength(args: Argument[], expectsValue: boolean = false, startLength: number = 0) {
+    return args.reduce((acc: number, arg: Argument): number => {
+        const length = getOptionName(arg, expectsValue).length;
+        if (length > acc) {
+            return length;
+        }
+        return acc;
+    }, startLength);
+}
+
+function getPositionalArgHelp(arg: Argument) {
+    const defaultValue = arg.defaultValue ? `(${arg.defaultValue})` : "";
+    return wrapWithBrackets(`${arg.name}${defaultValue}`, arg.required);
+}
+
+function getPositionalArgsHelp(args: Argument[]) {
+    return args.map((a) => getPositionalArgHelp(a)).join(" ");
 }
 
 function printHelpText(definition: ArgumentDefinition): void {
@@ -44,41 +83,24 @@ function printHelpText(definition: ArgumentDefinition): void {
         print(` - ${definition.description}`);
     }
 
-    const posArgs = definition.positional
-        .map(arg =>
-            `${arg.required ? '<' : '['}${arg.name}${arg.defaultValue ? `(${arg.defaultValue})` : undefined}${arg.required ? '>' : ']'}`)
-        .join(' ');
+    const posArgs = getPositionalArgsHelp(definition.positional);
+    const posArgsText = definition.positional.length > 0 ?
+        ` -- ${posArgs}` :
+        "";
+    const optionsPlaceholder = definition.flags.length > 0 || definition.args.length > 0 ?
+        " [options]" :
+        "";
 
-    print(`\nSynopsis: ${definition.command} [options] -- ${posArgs}\n`);
+    print(`\nSynopsis: ${definition.command}${optionsPlaceholder}${posArgsText}\n`);
 
-    let maxLength: number = definition.flags.reduce((acc: number, arg: Argument): number => {
-        const length = getOptionName(arg).length;
-        if (length > acc) {
-            return length;
-        }
-        return acc;
-    }, 0);
+    const maxLength = getMaxArgNameLength(
+        definition.args,
+        true,
+        getMaxArgNameLength(definition.flags)
+    );
 
-    maxLength = definition.args.reduce((acc: number, arg: Argument): number => {
-        const length = getOptionName(arg, true).length;
-        if (length > acc) {
-            return length;
-        }
-        return acc;
-    }, maxLength);
-
-    if(definition.flags.length > 0) {
-        print('Flags:');
-        for (let arg of definition.flags) {
-            print(`${getOptionName(arg).padStart(maxLength)}${arg.description ? ` - ${arg.description}` : undefined}`)
-        }
-    }
-    if(definition.args.length > 0) {
-        print('Options:');
-        for (let arg of definition.args) {
-            print(`${getOptionName(arg, true).padStart(maxLength)}${arg.description ? ` - ${arg.description}` : undefined}`)
-        }
-    }
+    printGroup(definition.flags, "Flags:", maxLength);
+    printGroup(definition.args, "Options:", maxLength);
 }
 
 export interface ArgumentDefinition extends Object {
