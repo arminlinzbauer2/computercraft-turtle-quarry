@@ -1,6 +1,4 @@
 export function parseArgs(definition: ArgumentDefinition, ...argv: Array<string>): ArgumentList | false {
-    const argList = {flags: {}, args: {}, positional: {}};
-
     definition.flags.push({
         name: "help",
         alias: "?",
@@ -25,6 +23,72 @@ export function parseArgs(definition: ArgumentDefinition, ...argv: Array<string>
         }
     }
 
+    return _parseArgs(definition, initDefaults(definition), argv);
+}
+
+function _parseArgs(definition: ArgumentDefinition, argList: ArgumentList, argv: Array<string>): ArgumentList {
+    let foundPositionals = -1;
+
+    for (let i = 0; i < argv.length; i++) {
+        const current = argv[i];
+        const next = argv.length > i ? argv[i + 1] : null;
+
+        let skip = false;
+        for (let arg of definition.flags) {
+            if (current === `--${arg.name}` || arg.alias && current === `-${arg.alias}`) {
+                argList[arg.name] = true;
+                skip = true;
+                break;
+            }
+        }
+
+        if (!skip) {
+            for (let arg of definition.args) {
+                if (current === `--${arg.name}` || arg.alias && current === `-${arg.alias}`) {
+                    if (next == null) {
+                        throw Error(`Missing value for argument '${current}'`);
+                    }
+
+                    argList[arg.name] = next;
+                    ++i;
+
+                    skip = true;
+                    break;
+                }
+                if (current.startsWith(`--${arg.name}=`) || arg.alias && current.startsWith(`-${arg.alias}=`)) {
+                    const value = current.split("=")[1];
+                    argList[arg.name] = value.length > 0 ? value : null;
+
+                    skip = true;
+                    break;
+                }
+            }
+        }
+
+        if (!skip) {
+            if (definition.positional[foundPositionals + 1] == null) {
+                throw Error("Too many arguments");
+            }
+            argList[definition.positional[++foundPositionals].name] = current;
+        }
+    }
+
+    return argList;
+}
+
+function initDefaults(definition: ArgumentDefinition): ArgumentList {
+    const argList: ArgumentList = {flags: {}, args: {}, positional: {}};
+
+    for (let arg of definition.positional) {
+        argList[arg.name] = arg.defaultValue ?? null;
+    }
+    for (let arg of definition.flags) {
+        argList[arg.name] = arg.defaultValue ?? false;
+    }
+    for (let arg of definition.args) {
+        argList[arg.name] = arg.defaultValue ?? null;
+    }
+
     return argList;
 }
 
@@ -34,7 +98,7 @@ function getName(definition: ArgumentDefinition): string {
 }
 
 function getOptionName(arg: Argument, expectsValue: boolean = false): string {
-    let expectedValueMarker = expectsValue ? `=${arg.required ? "<>" : "[]"}` : "";
+    let expectedValueMarker = expectsValue ? `=${arg.required ? "<>" : `[${arg.defaultValue ?? ''}]`}` : "";
     let alias = arg.alias ? `|-${arg.alias}` : "";
 
     return `--${arg.name}${alias}${expectedValueMarker}`;
@@ -46,11 +110,11 @@ function wrapWithBrackets(text: string, required: boolean = false) {
         `[${text}]`;
 }
 
-function printGroup(args: Argument[], title: string, padLength: number): void {
+function printGroup(args: Argument[], title: string, padLength: number, expectsValue: boolean = false): void {
     if (args.length > 0) {
-        print("Flags:");
+        print(`${title}:`);
         for (let arg of args) {
-            let paddedName = getOptionName(arg).padStart(padLength);
+            let paddedName = getOptionName(arg, expectsValue).padStart(padLength);
             let description = arg.description ? ` - ${arg.description}` : "";
             print(`${paddedName}${description}`);
         }
@@ -99,8 +163,8 @@ function printHelpText(definition: ArgumentDefinition): void {
         getMaxArgNameLength(definition.flags)
     );
 
-    printGroup(definition.flags, "Flags:", maxLength);
-    printGroup(definition.args, "Options:", maxLength);
+    printGroup(definition.flags, "Flags", maxLength);
+    printGroup(definition.args, "Options", maxLength, true);
 }
 
 export interface ArgumentDefinition extends Object {
@@ -123,8 +187,5 @@ export interface Argument extends Object {
     defaultValue?: any
 }
 
-export interface ArgumentList extends Object {
-    flags: Object,
-    args: Object,
-    positional: Object,
+export interface ArgumentList extends Record<string, any> {
 }
