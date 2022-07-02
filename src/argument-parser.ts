@@ -66,10 +66,12 @@ function _parseArgs(definition: ArgumentDefinition, argList: ArgumentList, argv:
         }
 
         if (!skip) {
-            if (definition.positional[foundPositionals + 1] == null) {
-                throw Error("Too many arguments");
+            if(foundPositionals > -1) {
+                if (definition.positional[foundPositionals + 1] == null) {
+                    throw Error("Too many arguments");
+                }
+                argList[definition.positional[++foundPositionals].name] = current;
             }
-            argList[definition.positional[++foundPositionals].name] = current;
         }
     }
 

@@ -11,6 +11,8 @@ declare function write(args: any);
 declare namespace turtle {
     export function detect(): boolean;
 
+    export function detectDown(): boolean;
+
     export function dig(): void;
 
     export function digDown(): void;
@@ -26,4 +28,8 @@ declare namespace turtle {
     export function up(): void;
 
     export function down(): void;
+
+    export function inspect(): LuaMultiReturn<[boolean, Record<string, any>]>;
+
+    export function inspectDown(): LuaMultiReturn<[boolean, Record<string, any>]>;
 }

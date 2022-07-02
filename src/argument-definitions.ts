@@ -18,7 +18,6 @@ export const argumentDefinition: ArgumentDefinition = {
         {name: "depth", defaultValue: 50, description: "Quarry depth"}
     ],
     positional: [
-        // ... 
     ]
 };
 
