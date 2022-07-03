@@ -1,13 +1,12 @@
 import {parseArgs} from "./argument-parser";
 import {argumentDefinition, ArgumentList} from "./argument-definitions";
-import {addDigEventHandler, DigEvent, quarry} from "./quarry";
+import {addMoveEventHandler, addTurnEventHandler, quarry} from "./quarry";
+import {onMove, onTurn} from "./track-position";
 
-function onDig(e: DigEvent) {
-    print(`Collected ${e.type}`);
-}
 
 function main(args: ArgumentList): void {
-    addDigEventHandler(onDig);
+    addTurnEventHandler(onTurn);
+    addMoveEventHandler(onMove);
     quarry(Number(args.width), Number(args.length), Number(args.depth));
 }
 

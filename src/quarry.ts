@@ -1,5 +1,17 @@
 import {createEventHelpers, Event, EventHandlerCollection} from "./event";
 
+export enum MoveDirection {
+    FORWARD,
+    UP,
+    DOWN
+}
+
+export enum TurnDirection {
+    LEFT,
+    RIGHT
+}
+
+
 export class DigEvent extends Event {
     constructor(public type: string) {
         super();
@@ -7,19 +19,20 @@ export class DigEvent extends Event {
 }
 
 export class MoveEvent extends Event {
-    private _test = "";
-
-    public get test() {
-        return this._test;
+    constructor(public direction: MoveDirection) {
+        super();
     }
+}
 
-    public set test(value: string) {
-        this._test = value;
+export class TurnEvent extends Event {
+    constructor(public direction: TurnDirection) {
+        super();
     }
 }
 
 let _digEventHandlers: EventHandlerCollection<DigEvent> = [];
 let _moveEventHandlers: EventHandlerCollection<MoveEvent> = [];
+let _turnEventHandlers: EventHandlerCollection<TurnEvent> = [];
 
 export const [
     addDigEventHandler,
@@ -32,6 +45,12 @@ export const [
     removeMoveEventHandler,
     dispatchMoveEvent
 ] = createEventHelpers(_moveEventHandlers);
+
+export const [
+    addTurnEventHandler,
+    removeTurnEventHandler,
+    dispatchTurnEvent
+] = createEventHelpers(_turnEventHandlers);
 
 
 export function quarry(width: number, length: number, depth: number) {
@@ -65,8 +84,7 @@ export function quarry(width: number, length: number, depth: number) {
     while (depth > 1) {
         digPlane(width, length, startRight);
         turtle.down();
-        const e = new MoveEvent();
-        e.test = "First Move on New Plane";
+        const e = new MoveEvent(MoveDirection.DOWN);
         dispatchMoveEvent(e);
 
         startRight = evenWidth ? !startRight : startRight;
@@ -106,8 +124,7 @@ function move() {
         dispatchDigEvent(digEvent);
     }
     turtle.forward();
-    const e = new MoveEvent();
-    e.test = "Generic Move";
+    const e = new MoveEvent(MoveDirection.FORWARD);
     dispatchMoveEvent(e);
 }
 
@@ -124,7 +141,9 @@ function digBlock() {
 
 function turner(right: boolean = false) {
     return function (flip: boolean = false) {
+        const event = new TurnEvent(right ? TurnDirection.RIGHT : TurnDirection.LEFT);
         right ? turtle.turnRight() : turtle.turnLeft();
         right = flip ? !right : right;
+        dispatchTurnEvent(event);
     };
 }

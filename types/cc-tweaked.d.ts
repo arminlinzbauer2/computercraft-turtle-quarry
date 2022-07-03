@@ -11,6 +11,12 @@ declare function write(args: any);
 declare namespace turtle {
     export function detect(): boolean;
 
+    export function select(slot: number): void;
+
+    export function getItemCount(slot: number): number;
+
+    export function drop(amount: number): void;
+
     export function detectDown(): boolean;
 
     export function dig(): void;
