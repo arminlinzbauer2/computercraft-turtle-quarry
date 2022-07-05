@@ -7,30 +7,54 @@ enum Orientation {NORTH, EAST, SOUTH, WEST};
 let currentPosition: Vector3d = {x: 0, y: 0, z: 0};
 let currentOrientation: Orientation = Orientation.NORTH;
 
+function turnRight(): void {
+    turtle.turnRight();
+    onTurn(new TurnEvent(TurnDirection.RIGHT));
+}
+
+function turnLeft(): void {
+    turtle.turnLeft();
+    onTurn(new TurnEvent(TurnDirection.LEFT));
+}
+
+function moveUp(): void {
+    turtle.up();
+    updateCurrentPosition(MoveDirection.UP);
+}
+
+function moveDown(): void {
+    turtle.down();
+    updateCurrentPosition(MoveDirection.DOWN);
+}
+
+function moveForward(): void {
+    turtle.forward();
+    updateCurrentPosition(MoveDirection.FORWARD);
+}
+
 function inventoryFull(): boolean {
     return turtle.getItemCount(16) > 0;
 }
 
 function returnToStart(): void {
     while (currentOrientation != Orientation.SOUTH) {
-        turtle.turnRight();
-        onTurn(new TurnEvent(TurnDirection.RIGHT));
+        turnRight();
     }
+
     while (currentPosition.z != 0) {
-        turtle.up();
-        ++currentPosition.z;
+        moveUp();
     }
+
     while (currentPosition.y != 0) {
-        turtle.forward();
-        --currentPosition.y;
+        moveForward();
     }
+
     if (currentPosition.x > 0) {
-        turtle.turnLeft();
+        turnLeft();
         while (currentPosition.x != 0) {
-            turtle.forward();
-            --currentPosition.x;
+            moveForward();
         }
-        turtle.turnRight();
+        turnRight();
     }
 }
 
@@ -43,31 +67,27 @@ function dropItems(): void {
 }
 
 function returnToPreviousPosition(returnPosition: Vector3d, returnOrientation: Orientation): void {
-    turtle.turnRight();
-    onTurn(new TurnEvent(TurnDirection.RIGHT));
-    turtle.turnRight();
-    onTurn(new TurnEvent(TurnDirection.RIGHT));
+    turnRight();
+    turnRight();
 
     if (returnPosition.x > 0) {
-        turtle.turnLeft();
+        turnLeft();
         while (currentPosition.x != returnPosition.x) {
-            turtle.forward();
-            ++currentPosition.x;
+            moveForward();
         }
-        turtle.turnRight();
+        turnRight();
     }
+
     while (currentPosition.y != returnPosition.y) {
-        turtle.forward();
-        ++currentPosition.y;
+        moveForward();
     }
+
     while (currentPosition.z != returnPosition.z) {
-        turtle.down();
-        --currentPosition.z;
+        moveDown();
     }
 
     while (currentOrientation != returnOrientation) {
-        turtle.turnRight();
-        onTurn(new TurnEvent(TurnDirection.RIGHT));
+        turnRight();
     }
 }
 
@@ -99,7 +119,7 @@ function updateCurrentPosition(direction: MoveDirection): void {
 }
 
 function transitionOrientation(direction: TurnDirection, transition: [left: Orientation, right: Orientation]) {
-    switch(direction) {
+    switch (direction) {
         case TurnDirection.LEFT:
             currentOrientation = transition[0];
             break;
@@ -109,14 +129,11 @@ function transitionOrientation(direction: TurnDirection, transition: [left: Orie
     }
 }
 
-const orientationNames = ["N", "E", "S", "W"];
-
 export function onMove(e: MoveEvent) {
     updateCurrentPosition(e.direction);
-    print(`Pos: x:${currentPosition.x} y:${currentPosition.y} z:${currentPosition.z} / ${orientationNames[currentOrientation]}`);
 
     if (inventoryFull()) {
-        const returnPosition = currentPosition;
+        const returnPosition = {...currentPosition};
         const returnOrientation = currentOrientation;
         returnToStart();
         dropItems();
@@ -125,18 +142,18 @@ export function onMove(e: MoveEvent) {
 }
 
 export function onTurn(e: TurnEvent) {
-    switch(currentOrientation) {
+    switch (currentOrientation) {
         case Orientation.NORTH:
-            transitionOrientation(e.direction, [Orientation.WEST, Orientation.EAST])
+            transitionOrientation(e.direction, [Orientation.WEST, Orientation.EAST]);
             break;
         case Orientation.EAST:
-            transitionOrientation(e.direction, [Orientation.NORTH, Orientation.SOUTH])
+            transitionOrientation(e.direction, [Orientation.NORTH, Orientation.SOUTH]);
             break;
         case Orientation.SOUTH:
-            transitionOrientation(e.direction, [Orientation.EAST, Orientation.WEST])
+            transitionOrientation(e.direction, [Orientation.EAST, Orientation.WEST]);
             break;
         case Orientation.WEST:
-            transitionOrientation(e.direction, [Orientation.SOUTH, Orientation.NORTH])
+            transitionOrientation(e.direction, [Orientation.SOUTH, Orientation.NORTH]);
             break;
     }
 }
