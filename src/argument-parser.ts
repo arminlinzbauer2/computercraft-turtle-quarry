@@ -66,7 +66,7 @@ function _parseArgs(definition: ArgumentDefinition, argList: ArgumentList, argv:
         }
 
         if (!skip) {
-            if(foundPositionals > -1) {
+            if (foundPositionals > -1) {
                 if (definition.positional[foundPositionals + 1] == null) {
                     throw Error("Too many arguments");
                 }
@@ -100,7 +100,7 @@ function getName(definition: ArgumentDefinition): string {
 }
 
 function getOptionName(arg: Argument, expectsValue: boolean = false): string {
-    let expectedValueMarker = expectsValue ? `=${arg.required ? "<>" : `[${arg.defaultValue ?? ''}]`}` : "";
+    let expectedValueMarker = expectsValue ? `=${arg.required ? "<>" : `[${arg.defaultValue ?? ""}]`}` : "";
     let alias = arg.alias ? `|-${arg.alias}` : "";
 
     return `--${arg.name}${alias}${expectedValueMarker}`;

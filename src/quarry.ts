@@ -30,9 +30,21 @@ export class TurnEvent extends Event {
     }
 }
 
+export class PlaneFinishedEvent extends Event {
+    constructor(public nextPlane: number, public maxPlanes: number) {
+        super();
+    }
+}
+
+export class QuarryFinishedEvent extends Event {
+
+}
+
 let _digEventHandlers: EventHandlerCollection<DigEvent> = [];
 let _moveEventHandlers: EventHandlerCollection<MoveEvent> = [];
 let _turnEventHandlers: EventHandlerCollection<TurnEvent> = [];
+let _planeFinishedEventHandlers: EventHandlerCollection<PlaneFinishedEvent> = [];
+let _quarryFinishedEventHandlers: EventHandlerCollection<QuarryFinishedEvent> = [];
 
 export const [
     addDigEventHandler,
@@ -52,8 +64,22 @@ export const [
     dispatchTurnEvent
 ] = createEventHelpers(_turnEventHandlers);
 
+export const [
+    addPlaneFinishedEventHandler,
+    removePlaneFinishedEventHandler,
+    dispatchPlaneFinishedEvent
+] = createEventHelpers(_planeFinishedEventHandlers);
+
+export const [
+    addQuarryFinishedEventHandler,
+    removeQuarryFinishedEventHandler,
+    dispatchQuarryFinishedEvent
+] = createEventHelpers(_quarryFinishedEventHandlers);
+
 
 export function quarry(width: number, length: number, depth: number) {
+    const initialDepth = depth;
+
     if (width < 2) {
         throw Error("Width needs to be > 1");
     }
@@ -83,6 +109,7 @@ export function quarry(width: number, length: number, depth: number) {
 
     while (depth > 1) {
         digPlane(width, length, startRight);
+        dispatchPlaneFinishedEvent(new PlaneFinishedEvent(depth - 1, initialDepth));
         turtle.down();
         const e = new MoveEvent(MoveDirection.DOWN);
         dispatchMoveEvent(e);
@@ -91,6 +118,8 @@ export function quarry(width: number, length: number, depth: number) {
         --depth;
     }
     digPlane(width, length, startRight);
+    dispatchPlaneFinishedEvent(new PlaneFinishedEvent(depth - 1, initialDepth));
+    dispatchQuarryFinishedEvent(new QuarryFinishedEvent());
 }
 
 function digPlane(width: number, length: number, startRight: boolean = false) {

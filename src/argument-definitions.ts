@@ -17,8 +17,7 @@ export const argumentDefinition: ArgumentDefinition = {
         {name: "length", defaultValue: 10, description: "Quarry length"},
         {name: "depth", defaultValue: 50, description: "Quarry depth"}
     ],
-    positional: [
-    ]
+    positional: []
 };
 
 export interface ArgumentList extends _ArgumentList {

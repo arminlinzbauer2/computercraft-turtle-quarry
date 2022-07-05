@@ -2,7 +2,7 @@ import {MoveDirection, MoveEvent, TurnDirection, TurnEvent} from "./quarry";
 
 type Vector3d = { x: number, y: number, z: number };
 
-enum Orientation {NORTH, EAST, SOUTH, WEST};
+enum Orientation {NORTH, EAST, SOUTH, WEST}
 
 let currentPosition: Vector3d = {x: 0, y: 0, z: 0};
 let currentOrientation: Orientation = Orientation.NORTH;
