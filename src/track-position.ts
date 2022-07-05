@@ -1,4 +1,4 @@
-import {MoveDirection, MoveEvent, TurnDirection, TurnEvent} from "./quarry";
+import {DigEvent, MoveDirection, MoveEvent, QuarryFinishedEvent, TurnDirection, TurnEvent} from "./quarry";
 
 type Vector3d = { x: number, y: number, z: number };
 
@@ -131,7 +131,9 @@ function transitionOrientation(direction: TurnDirection, transition: [left: Orie
 
 export function onMove(e: MoveEvent) {
     updateCurrentPosition(e.direction);
+}
 
+export function onDig(e: DigEvent) {
     if (inventoryFull()) {
         const returnPosition = {...currentPosition};
         const returnOrientation = currentOrientation;
@@ -139,6 +141,11 @@ export function onMove(e: MoveEvent) {
         dropItems();
         returnToPreviousPosition(returnPosition, returnOrientation);
     }
+}
+
+export function onQuarryFinished(e: QuarryFinishedEvent) {
+    returnToStart();
+    dropItems();
 }
 
 export function onTurn(e: TurnEvent) {
